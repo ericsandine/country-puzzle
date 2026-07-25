@@ -2,7 +2,7 @@
   "mcpServers": {
     "openscad": {
       "command": "tools/OpenSCAD-MCP-Server/venv/bin/python",
-      "args": ["tools/OpenSCAD-MCP-Server/src/mcp_stdio_server.py"],
+      "args": ["tools/mcp_stdio_server.py"],
       "env": {
         "OPENSCAD_PATH": "/Applications/OpenSCAD-2021.01.app/Contents/MacOS/OpenSCAD"
       }
