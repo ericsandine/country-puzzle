@@ -51,7 +51,7 @@ long tail is tiny islands and city-states (135 printable countries at
 `scripts/generate_countries.py`.
 
 <!-- BEGIN GENERATED: skipped-countries -->
-**135 countries printable, 107 skipped** (below 25 mm² at 800 mm map width). Of the printable pieces, 33 carry their full name, 38 a shortened label, and 64 are blank (no readable text fits at the 4 mm printability floor): ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, COG, CUB, CZE, DNK, ECU, ERI, EST, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MWI, MYS, NIC, NLD, NPL, NZL, OMN, PAN, PHL, PRK, PRT, SAH, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, TJK, TUN, UGA, VNM.
+**134 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Of the printable pieces, 32 carry their full name, 38 a shortened label, and 64 are blank (no readable text fits at the 4 mm printability floor): ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, COG, CUB, CZE, DNK, ECU, ERI, EST, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MWI, MYS, NIC, NLD, NPL, NZL, OMN, PAN, PHL, PRK, PRT, SAH, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, TJK, TUN, UGA, VNM.
 
 Skipped countries:
 

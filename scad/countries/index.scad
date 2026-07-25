@@ -3,7 +3,6 @@ include <AFG.scad>
 include <AGO.scad>
 include <ARE.scad>
 include <ARG.scad>
-include <ATA.scad>
 include <AUS.scad>
 include <AUT.scad>
 include <AZE.scad>
@@ -140,7 +139,6 @@ module country(iso, part = "all") {
     else if (iso == "AGO") country_AGO(part);
     else if (iso == "ARE") country_ARE(part);
     else if (iso == "ARG") country_ARG(part);
-    else if (iso == "ATA") country_ATA(part);
     else if (iso == "AUS") country_AUS(part);
     else if (iso == "AUT") country_AUT(part);
     else if (iso == "AZE") country_AZE(part);
@@ -279,7 +277,6 @@ module all_countries(part = "all") {
     country_AGO(part);
     country_ARE(part);
     country_ARG(part);
-    country_ATA(part);
     country_AUS(part);
     country_AUT(part);
     country_AZE(part);

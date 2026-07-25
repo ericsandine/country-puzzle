@@ -45,6 +45,7 @@ NE_URL = (
 )
 
 MAP_WIDTH_MM = 800.0    # keep in sync with MAP_WIDTH in scad/puzzle.scad
+EXCLUDED = {"ATA"}      # design choice: no Antarctica (huge Mercator slab)
 LAT_CLIP = 85.0         # Mercator blows up at the poles; standard clip
 MIN_AREA_MM2 = 25.0     # skip countries smaller than this on the map
 SIMPLIFY_TOL_MM = 0.15  # polygon simplification tolerance
@@ -203,7 +204,8 @@ def update_readme(generated: list, skipped: list, tight_labels: list) -> None:
     section = (
         f"{MARK_BEGIN}\n"
         f"**{len(generated)} countries printable, {len(skipped)} skipped** "
-        f"(below {MIN_AREA_MM2:.0f} mm² at {MAP_WIDTH_MM:.0f} mm map width). "
+        f"(below {MIN_AREA_MM2:.0f} mm² at {MAP_WIDTH_MM:.0f} mm map width), "
+        f"plus excluded by design: {', '.join(sorted(EXCLUDED))}. "
         f"Of the printable pieces, {len(generated) - len(tight_labels)} carry "
         f"their full name, {len(shortened)} a shortened label, and "
         f"{len(blank)} are blank (no readable text fits at the "
@@ -238,6 +240,8 @@ def main() -> None:
         iso = props["ADM0_A3"]
         name = props.get("NAME_EN") or props.get("NAME") or props.get("ADMIN")
         if args.country and iso != args.country:
+            continue
+        if iso in EXCLUDED:
             continue
 
         poly, dropped_share = largest_landmass(feat["geometry"])
