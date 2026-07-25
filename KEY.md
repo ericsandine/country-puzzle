@@ -108,7 +108,8 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | — | Portugal |
 | — | Paraguay |
 | ROU | Romania |
-| RUS | Russia |
+| — | Russia (west half) |
+| RUSE | Russia (east half) |
 | — | Western Sahara |
 | SAU | Saudi Arabia |
 | SDN | Sudan |

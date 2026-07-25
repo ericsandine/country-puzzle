@@ -35,8 +35,8 @@ from concurrent.futures import ThreadPoolExecutor
 warnings.filterwarnings("ignore", message=".*oriented_envelope.*")
 
 from shapely import affinity
-from shapely.geometry import MultiPolygon, Polygon, box
-from shapely.ops import polylabel
+from shapely.geometry import LineString, MultiPolygon, Polygon, box
+from shapely.ops import polylabel, unary_union
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 RAW = REPO / "data" / "raw" / "ne_50m_admin_0_countries.geojson"
@@ -49,6 +49,16 @@ NE_URL = (
 
 MAP_WIDTH_MM = 800.0    # keep in sync with MAP_WIDTH in scad/puzzle.scad
 EXCLUDED = {"ATA"}      # design choice: no Antarctica (huge Mercator slab)
+
+# Countries too big for the build plate, split at a vertical cut (map mm).
+# Russia: 339 mm wide vs 240 mm usable bed; cut at ~90 E (Yenisei area),
+# giving ~140 + ~200 mm halves. The halves join with dovetail tabs
+# (west half tabs, east half sockets) and are glued after printing.
+SPLITS = {"RUS": 90 / 360 * MAP_WIDTH_MM}
+TAB_DEPTH = 7.0         # how far tabs reach into the east half
+TAB_NECK = 6.0          # tab width at the cut line
+TAB_HEAD = 10.0         # tab width at the far end (wider = dovetail lock)
+TAB_MAX = 3             # tabs per cut
 LAT_CLIP = 85.0         # Mercator blows up at the poles; standard clip
 MIN_AREA_MM2 = 25.0     # skip countries smaller than this on the map
 SIMPLIFY_TOL_MM = 0.15  # polygon simplification tolerance
@@ -150,6 +160,51 @@ def candidate_angles(poly: Polygon) -> list[float]:
     if not math.isfinite(angle) or abs(angle) < 10:
         return [0.0]
     return [0.0, angle]
+
+
+def _largest(geom) -> Polygon:
+    if isinstance(geom, MultiPolygon):
+        return max(geom.geoms, key=lambda p: p.area)
+    return geom
+
+
+def split_with_tabs(poly: Polygon, cut_x: float) -> list[tuple[str, Polygon]]:
+    """Split poly at vertical line x=cut_x into west/east halves joined by
+    dovetail tabs: tabs union onto the west half and are subtracted from the
+    east half (exact shapes — the global piece CLEARANCE inset provides the
+    0.3 mm assembly/glue gap, same as any neighboring pieces)."""
+    minx, miny, maxx, maxy = poly.bounds
+    west = poly.intersection(box(minx - 1, miny - 1, cut_x, maxy + 1))
+    east = poly.intersection(box(cut_x, miny - 1, maxx + 1, maxy + 1))
+
+    cut = poly.intersection(LineString([(cut_x, miny - 1), (cut_x, maxy + 1)]))
+    segs = [cut] if isinstance(cut, LineString) else list(cut.geoms)
+    segs = sorted(
+        (s for s in segs if s.length >= TAB_HEAD + 8), key=lambda s: -s.length
+    )
+    # Distribute TAB_MAX tabs across the land segments of the cut,
+    # proportionally to segment length (one long segment gets several).
+    tabs, total = [], sum(s.length for s in segs)
+    for seg in segs:
+        n = max(1, round(TAB_MAX * seg.length / total)) if total else 0
+        for i in range(n):
+            if len(tabs) >= TAB_MAX:
+                break
+            cy = seg.interpolate((i + 1) / (n + 1), normalized=True).y
+            tab = Polygon([
+                (cut_x - 0.5, cy - TAB_NECK / 2),
+                (cut_x + TAB_DEPTH, cy - TAB_HEAD / 2),
+                (cut_x + TAB_DEPTH, cy + TAB_HEAD / 2),
+                (cut_x - 0.5, cy + TAB_NECK / 2),
+            ])
+            if poly.contains(tab):  # tab must sit fully on land
+                tabs.append(tab)
+    if not tabs:
+        print("WARNING: no dovetail tabs fit on the cut line", file=sys.stderr)
+    else:
+        west = unary_union([west, *tabs])
+        east = east.difference(unary_union(tabs))
+    return [("W", _largest(west)), ("E", _largest(east))]
 
 
 def label_spec(
@@ -258,11 +313,10 @@ def update_readme(generated: list, skipped: list, tight_labels: list) -> None:
     README.write_text(head + section + tail)
 
 
-def write_key(generated: list, tight_labels: list) -> None:
+def write_key(generated: list, unlabeled: set) -> None:
     """Write KEY.md: the printable legend mapping piece codes to names."""
-    blank_isos = {iso for iso, *_ in tight_labels}
     rows = "\n".join(
-        f"| {'—' if iso in blank_isos else iso} | {name} |"
+        f"| {'—' if iso in unlabeled else iso} | {name} |"
         for iso, name, *_ in generated
     )
     (REPO / "KEY.md").write_text(
@@ -295,6 +349,7 @@ def main() -> None:
     ])
 
     generated, skipped, tight_labels = [], [], []
+    unlabeled = set()
     for feat in sorted(features, key=lambda f: f["properties"]["ADM0_A3"]):
         props = feat["properties"]
         iso = props["ADM0_A3"]
@@ -310,23 +365,45 @@ def main() -> None:
             skipped.append((iso, name, poly.area))
             continue
 
-        # Uniform labels: every piece carries its ISO code (KEY.md maps
-        # codes to names), blank only when even 3 letters can't fit.
-        label_pos, label_text, label_size, label_rot = label_spec(
-            poly, [iso], metrics
-        )
-        if not label_text:
-            tight_labels.append((iso, name, label_text))
+        if iso in SPLITS:
+            # Oversize for the build plate: two dovetailed halves, glued
+            # after printing. Only the east (larger) half carries the code.
+            pieces_out = [
+                (f"{iso}{sfx}", f"{name} ({'west' if sfx == 'W' else 'east'} half)",
+                 part, [iso] if sfx == "E" else [])
+                for sfx, part in split_with_tabs(poly, SPLITS[iso])
+            ]
+        else:
+            pieces_out = [(iso, name, poly, [iso])]
 
-        n_pts = len(poly.exterior.coords) + sum(len(h.coords) for h in poly.interiors)
-        generated.append((iso, name, poly.area, n_pts, dropped_share))
-        if args.report:
-            continue
-        (OUT / f"{iso}.scad").write_text(
-            scad_module(iso, label_text, poly, label_pos, label_size, label_rot)
-        )
+        for piso, pname, ppoly, ladder in pieces_out:
+            # Uniform labels: every piece carries its ISO code (KEY.md maps
+            # codes to names), blank only when even 3 letters can't fit.
+            label_pos, label_text, label_size, label_rot = label_spec(
+                ppoly, ladder, metrics
+            )
+            if not label_text:
+                unlabeled.add(piso)
+                if ladder:
+                    tight_labels.append((piso, pname, label_text))
+
+            n_pts = len(ppoly.exterior.coords) + sum(
+                len(h.coords) for h in ppoly.interiors
+            )
+            generated.append((piso, pname, ppoly.area, n_pts, dropped_share))
+            if args.report:
+                continue
+            (OUT / f"{piso}.scad").write_text(
+                scad_module(piso, label_text, ppoly, label_pos, label_size,
+                            label_rot)
+            )
 
     if not args.report and not args.country:
+        keep = {iso for iso, *_ in generated} | {"index"}
+        for stale in OUT.glob("*.scad"):
+            if stale.stem not in keep:
+                stale.unlink()
+                print(f"Removed stale {stale.name}", file=sys.stderr)
         includes = "\n".join(f"include <{iso}.scad>" for iso, *_ in generated)
         dispatch = "\n    else ".join(
             f'if (iso == "{iso}") country_{iso}(part);' for iso, *_ in generated
@@ -348,7 +425,7 @@ module all_countries(part = "all") {{
 
     if not args.report and not args.country:
         update_readme(generated, skipped, tight_labels)
-        write_key(generated, tight_labels)
+        write_key(generated, unlabeled)
 
     total_pts = sum(n for *_, n, _ in generated)
     print(f"Generated {len(generated)} countries, {total_pts} vertices total.")

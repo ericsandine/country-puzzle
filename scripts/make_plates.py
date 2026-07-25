@@ -36,7 +36,7 @@ GAP = 3.0          # spacing between pieces
 def load_pieces() -> list[tuple[str, trimesh.Trimesh, trimesh.Trimesh | None]]:
     pieces = []
     for base_path in sorted(PIECES.glob("*_base.stl")):
-        iso = base_path.stem[:3]
+        iso = base_path.stem.rsplit("_", 1)[0]
         base = trimesh.load(base_path)
         label_path = PIECES / f"{iso}_label.stl"
         label = trimesh.load(label_path) if label_path.exists() else None

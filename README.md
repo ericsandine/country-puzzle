@@ -43,8 +43,11 @@ country-puzzle/
    single object with multiple parts", assign white filament to the bases
    part and black to the labels part, slice.
 
-Note: Russia (339 x 183 mm) exceeds a 256 mm bed and is reported as
-OVERSIZE rather than plated — print it on a larger machine or split it.
+Note: Russia (339 x 183 mm) exceeds a 256 mm bed, so the generator splits
+it at ~90°E into two pieces (RUSW / RUSE) joined by three dovetail tabs
+along the cut — press together and glue after printing. The east half
+carries the RUS label. Cut position and tab geometry: `SPLITS` /
+`TAB_*` in `scripts/generate_countries.py`.
 
 ## Print design notes
 
@@ -62,7 +65,7 @@ long tail is tiny islands and city-states (135 printable countries at
 `scripts/generate_countries.py`.
 
 <!-- BEGIN GENERATED: skipped-countries -->
-**134 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Pieces are labeled with their 3-letter code (see [KEY.md](KEY.md)); 78 pieces are too small even for that and are blank: ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, CMR, COG, CUB, CZE, DNK, ECU, ERI, EST, GAB, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KGZ, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MMR, MOZ, MWI, MYS, NIC, NLD, NOR, NPL, NZL, OMN, PAN, PHL, PNG, PRK, PRT, PRY, SAH, SDS, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, THA, TJK, TUN, UGA, URY, UZB, VNM, YEM, ZWE.
+**135 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Pieces are labeled with their 3-letter code (see [KEY.md](KEY.md)); 78 pieces are too small even for that and are blank: ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, CMR, COG, CUB, CZE, DNK, ECU, ERI, EST, GAB, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KGZ, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MMR, MOZ, MWI, MYS, NIC, NLD, NOR, NPL, NZL, OMN, PAN, PHL, PNG, PRK, PRT, PRY, SAH, SDS, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, THA, TJK, TUN, UGA, URY, UZB, VNM, YEM, ZWE.
 
 Skipped countries:
 

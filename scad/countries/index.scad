@@ -101,7 +101,8 @@ include <PRK.scad>
 include <PRT.scad>
 include <PRY.scad>
 include <ROU.scad>
-include <RUS.scad>
+include <RUSW.scad>
+include <RUSE.scad>
 include <SAH.scad>
 include <SAU.scad>
 include <SDN.scad>
@@ -237,7 +238,8 @@ module country(iso, part = "all") {
     else if (iso == "PRT") country_PRT(part);
     else if (iso == "PRY") country_PRY(part);
     else if (iso == "ROU") country_ROU(part);
-    else if (iso == "RUS") country_RUS(part);
+    else if (iso == "RUSW") country_RUSW(part);
+    else if (iso == "RUSE") country_RUSE(part);
     else if (iso == "SAH") country_SAH(part);
     else if (iso == "SAU") country_SAU(part);
     else if (iso == "SDN") country_SDN(part);
@@ -375,7 +377,8 @@ module all_countries(part = "all") {
     country_PRT(part);
     country_PRY(part);
     country_ROU(part);
-    country_RUS(part);
+    country_RUSW(part);
+    country_RUSE(part);
     country_SAH(part);
     country_SAU(part);
     country_SDN(part);
