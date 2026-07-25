@@ -1,0 +1,16 @@
+# OpenSCAD MCP server: separate clone with its own .git (see README setup)
+tools/OpenSCAD-MCP-Server/
+
+# Exports for slicing (regenerable)
+export/
+*.stl
+*.3mf
+*.gcode
+
+# Raw geodata downloads (regenerable via scripts)
+data/raw/
+
+# OS noise
+.DS_Store
+__pycache__/
+*.pyc
