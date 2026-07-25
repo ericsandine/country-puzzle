@@ -60,3 +60,9 @@ python3 -m venv venv
   pillow requests httpx python-dotenv pyyaml jinja2 numpy tqdm zeroconf \
   aiohttp trimesh
 ```
+
+Upstream's `src/main.py` targets an MCP API that never shipped in the official
+SDK, so it can't run as-is. Instead, `tools/mcp_stdio_server.py` (ours,
+version-controlled) exposes OpenSCAD over stdio MCP using the official SDK,
+and `.mcp.json` registers it for Claude Code with tools: `render_preview`,
+`export_model`, `check_scad`, `openscad_version`.
