@@ -1,8 +1,9 @@
 # Country Puzzle — project notes
 
-3D-printable world-map jigsaw: one piece per country, white base, country name
-embossed on top in black. Mercator projection. Designed in OpenSCAD, sliced in
-Bambu Studio.
+3D-printable world-map jigsaw: one piece per country, white base, 3-letter
+country code embossed on top in black (uniform look; KEY.md is the generated
+legend). Mercator projection. Designed in OpenSCAD, sliced in Bambu Studio.
+Antarctica excluded by design.
 
 ## Key facts
 

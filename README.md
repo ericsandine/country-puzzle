@@ -3,7 +3,9 @@
 A 3D-printable world map jigsaw puzzle. Every country is its own puzzle piece:
 
 - **Base piece**: white filament, extruded from the country's Mercator-projected outline
-- **Label**: the country name embossed on top in a contrasting color (black)
+- **Label**: the country's 3-letter code embossed on top in a contrasting
+  color (black), uniform across pieces — [KEY.md](KEY.md) is the printable
+  legend mapping codes to country names
 - **Projection**: Mercator, full world map
 - **Design tool**: OpenSCAD (parametric, everything code-driven)
 - **Slicing/printing**: Bambu Studio (multi-color via AMS or filament-change)
@@ -51,7 +53,7 @@ long tail is tiny islands and city-states (135 printable countries at
 `scripts/generate_countries.py`.
 
 <!-- BEGIN GENERATED: skipped-countries -->
-**134 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Of the printable pieces, 32 carry their full name, 38 a shortened label, and 64 are blank (no readable text fits at the 4 mm printability floor): ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, COG, CUB, CZE, DNK, ECU, ERI, EST, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MWI, MYS, NIC, NLD, NPL, NZL, OMN, PAN, PHL, PRK, PRT, SAH, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, TJK, TUN, UGA, VNM.
+**134 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Pieces are labeled with their 3-letter code (see [KEY.md](KEY.md)); 64 pieces are too small even for that and are blank: ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, COG, CUB, CZE, DNK, ECU, ERI, EST, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MWI, MYS, NIC, NLD, NPL, NZL, OMN, PAN, PHL, PRK, PRT, SAH, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, TJK, TUN, UGA, VNM.
 
 Skipped countries:
 
