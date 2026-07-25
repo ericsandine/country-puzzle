@@ -21,7 +21,9 @@ country-puzzle/
 ├── scripts/
 │   └── generate_countries.py  # GeoJSON → Mercator-projected OpenSCAD polygons
 ├── data/                    # Source geodata (Natural Earth GeoJSON), gitignored raw
-├── export/                  # STL/3MF exports for Bambu Studio (gitignored)
+├── export/
+│   ├── pieces/              # Per-piece STLs (base + label), committed — print these
+│   └── plates/              # Packed 256 mm build plates as 3MF, committed
 └── tools/
     └── OpenSCAD-MCP-Server/ # MCP server for OpenSCAD (vendored, own venv)
 ```

@@ -1,10 +1,9 @@
 # OpenSCAD MCP server: separate clone with its own .git (see README setup)
 tools/OpenSCAD-MCP-Server/
 
-# Exports for slicing (regenerable)
-export/
-*.stl
-*.3mf
+# Scratch preview renders; export/pieces/ and export/plates/ are committed
+# so people can print without running the pipeline
+export/*.png
 *.gcode
 
 # Raw geodata downloads (regenerable via scripts)
