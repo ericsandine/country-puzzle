@@ -53,6 +53,14 @@ carries the RUS label. Cut position and tab geometry: `SPLITS` /
 
 - Piece base thickness: 10 mm; label raised 0.8 mm (4 text layers at 0.2 mm).
 - Alternative single-extruder trick: pause/filament-change at the text layer.
+- Label floor is 3 mm text with a 0.4 mm nozzle: Liberation Sans Bold stems
+  measure 0.20 × text size, so 3 mm text = 0.6 mm strokes — above the
+  ~0.34 mm single-wall minimum of Bambu Studio's Arachne wall generator
+  (the default). Black-on-white text reads by color contrast, not shadow,
+  so the usual "4 mm minimum for embossed text" guidance doesn't bind.
+  Going below 3 mm risks fused letter counters (the hole in O/A).
+- A 0.2 mm nozzle would allow ~1.5-2 mm codes if you ever want the
+  remaining tiny pieces labeled — regenerate with a lower `LABEL_MIN`.
 
 ## Map size tradeoff
 
@@ -65,7 +73,7 @@ long tail is tiny islands and city-states (135 printable countries at
 `scripts/generate_countries.py`.
 
 <!-- BEGIN GENERATED: skipped-countries -->
-**135 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Pieces are labeled with their 3-letter code (see [KEY.md](KEY.md)); 78 pieces are too small even for that and are blank: ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, CMR, COG, CUB, CZE, DNK, ECU, ERI, EST, GAB, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KGZ, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MMR, MOZ, MWI, MYS, NIC, NLD, NOR, NPL, NZL, OMN, PAN, PHL, PNG, PRK, PRT, PRY, SAH, SDS, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, THA, TJK, TUN, UGA, URY, UZB, VNM, YEM, ZWE.
+**135 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Pieces are labeled with their 3-letter code (see [KEY.md](KEY.md)); 60 pieces are too small even for that and are blank: ARE, AUT, AZE, BEL, BEN, BGD, BGR, BIH, CHE, CHL, COG, CUB, CZE, DNK, ERI, EST, GAB, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, JOR, JPN, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MWI, MYS, NIC, NLD, NPL, OMN, PAN, PHL, PRK, PRT, SAH, SEN, SLE, SOL, SRB, SUR, SVK, SYR, TJK, TUN, UGA, VNM, YEM.
 
 Skipped countries:
 

@@ -62,7 +62,12 @@ TAB_MAX = 3             # tabs per cut
 LAT_CLIP = 85.0         # Mercator blows up at the poles; standard clip
 MIN_AREA_MM2 = 25.0     # skip countries smaller than this on the map
 SIMPLIFY_TOL_MM = 0.15  # polygon simplification tolerance
-LABEL_MIN = 4.0         # matches MIN_LABEL_SIZE in scad/piece.scad
+LABEL_MIN = 3.0         # matches MIN_LABEL_SIZE in scad/piece.scad.
+                        # Liberation Sans Bold stem = 0.20 x size, so 3 mm
+                        # text has 0.6 mm strokes — comfortably above the
+                        # ~0.34 mm Arachne single-wall floor of a 0.4 mm
+                        # nozzle. Legibility is fine: black-on-white reads
+                        # by contrast, not shadow.
 LABEL_MAX = 7.0         # cap for visual uniformity: labels are ISO codes,
                         # big countries shouldn't shout
 LABEL_FONT = "Liberation Sans:style=Bold"  # keep in sync with scad/piece.scad

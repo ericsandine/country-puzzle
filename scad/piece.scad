@@ -9,7 +9,9 @@
 BASE_THICKNESS = 10;   // white body height — chunky, substantial pieces
 LABEL_HEIGHT   = 0.8;  // raised text: 4 layers at 0.2 mm
 LABEL_FONT     = "Liberation Sans:style=Bold";
-MIN_LABEL_SIZE = 4;    // don't shrink text below this (printability floor)
+MIN_LABEL_SIZE = 3;    // printability floor: 0.6 mm strokes with a 0.4 mm
+                       // nozzle (Arachne walls); keep in sync with
+                       // LABEL_MIN in scripts/generate_countries.py
 CLEARANCE      = 0.15; // per-piece inset so adjacent pieces fit, not fuse
 
 // A piece's polygon comes in map millimetres (already Mercator-projected
