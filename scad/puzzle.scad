@@ -7,23 +7,18 @@
 // scripts/generate_countries.py (Natural Earth GeoJSON → Mercator mm).
 
 include <piece.scad>
+include <countries/index.scad>
 
 // ---- Map parameters ----
-MAP_WIDTH = 800;   // full world width in mm (drives generator scale)
-PART = "all";      // "all" | "base" | "label" — for per-color export
+// NOTE: the actual scale is baked into scad/countries/ by the generator
+// (MAP_WIDTH_MM in scripts/generate_countries.py). This constant is
+// informational; change it there and regenerate.
+MAP_WIDTH = 800;
 
-// ---- Demo piece (placeholder until scad/countries/ is generated) ----
-// A rough, recognizable placeholder outline so the pipeline can be tested
-// end to end before real country data exists.
-DEMO_POINTS = [
-    [0, 0], [40, -5], [55, 10], [60, 35], [45, 45],
-    [30, 40], [20, 48], [8, 42], [-5, 30], [-8, 12]
-];
+PART = "all";   // "all" | "base" | "label" — for per-color export
+SHOW = "all";   // "all" | an ADM0_A3 code like "FRA"
 
-piece(
-    name       = "DEMOLAND",
-    points     = DEMO_POINTS,
-    label_pos  = [26, 20],
-    label_size = 6,
-    part       = PART
-);
+if (SHOW == "all")
+    all_countries(PART);
+else
+    country(SHOW, PART);

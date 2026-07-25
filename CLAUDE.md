@@ -23,6 +23,16 @@ Bambu Studio.
 - Base 4 mm white, label raised 0.8 mm black (4 × 0.2 mm layers).
 - Minimum label text size 4 mm for printability.
 
+## Country data pipeline
+
+- Regenerate: `.venv/bin/python scripts/generate_countries.py` (repo venv with
+  shapely; Natural Earth GeoJSON auto-downloads to `data/raw/`).
+- Select what to render with `-D 'SHOW="FRA"'` (ADM0_A3 code) or `SHOW="all"`.
+- At 800 mm map width only 135/242 countries clear the 25 mm² floor; scale
+  and small-country strategy are open design questions.
+- OpenCSG preview (F5/PNG default) shows z-fighting artifacts on the
+  label-clip intersection — use `--render` to judge real geometry.
+
 ## Commands
 
 ```sh

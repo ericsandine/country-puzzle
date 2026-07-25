@@ -2,45 +2,53 @@
 """Generate OpenSCAD country polygon data from Natural Earth GeoJSON.
 
 Pipeline:
-  1. Download (once) Natural Earth admin-0 countries GeoJSON into data/raw/.
-  2. Project every country outline with Web-Mercator, scale so the whole
+  1. Read Natural Earth admin-0 countries GeoJSON from data/raw/
+     (downloaded automatically on first run).
+  2. Project every country outline with Web-Mercator, scaled so the whole
      map is MAP_WIDTH_MM wide.
-  3. Simplify polygons to a printable vertex count, drop slivers below
-     MIN_AREA_MM2, keep the largest ring(s) per country.
+  3. Keep the largest landmass polygon per country (v1: islands dropped),
+     simplify to a printable vertex count, drop countries below MIN_AREA_MM2.
   4. Compute a label anchor (pole of inaccessibility) and a label size that
-     fits the outline.
-  5. Emit one .scad file per country into scad/countries/, plus an
-     index (scad/countries/index.scad) that includes them all.
+     fits the outline (piece.scad enforces the 4 mm printability floor).
+  5. Emit one .scad module per country into scad/countries/ plus an
+     index.scad with a name-dispatch module and an all_countries() module.
 
-Usage:
-  python3 scripts/generate_countries.py            # full run
-  python3 scripts/generate_countries.py --country FRA  # single country
-
-Status: SKELETON — download/projection/emit to be implemented next.
+Run with the repo venv:  .venv/bin/python scripts/generate_countries.py
+Options:
+  --country FRA   generate a single country (by ADM0_A3 code)
+  --report        print per-country stats without writing files
 """
 
 import argparse
 import json
 import math
 import pathlib
+import sys
+import urllib.request
+
+from shapely.geometry import MultiPolygon, Polygon
+from shapely.ops import polylabel
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-RAW = REPO / "data" / "raw"
+RAW = REPO / "data" / "raw" / "ne_50m_admin_0_countries.geojson"
 OUT = REPO / "scad" / "countries"
 
-# Natural Earth 1:50m admin-0 countries (via the geojson mirror)
 NE_URL = (
     "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
     "master/geojson/ne_50m_admin_0_countries.geojson"
 )
 
-MAP_WIDTH_MM = 800.0   # keep in sync with MAP_WIDTH in scad/puzzle.scad
-LAT_CLIP = 85.0        # Mercator blows up at the poles; standard clip
-MIN_AREA_MM2 = 25.0    # drop islands/slivers smaller than this
+MAP_WIDTH_MM = 800.0    # keep in sync with MAP_WIDTH in scad/puzzle.scad
+LAT_CLIP = 85.0         # Mercator blows up at the poles; standard clip
+MIN_AREA_MM2 = 25.0     # skip countries smaller than this on the map
+SIMPLIFY_TOL_MM = 0.15  # polygon simplification tolerance
+LABEL_MIN = 4.0         # matches MIN_LABEL_SIZE in scad/piece.scad
+LABEL_MAX = 12.0
+CHAR_W = 0.62           # approx glyph advance / text size, Liberation Sans Bold
 
 
 def mercator(lon_deg: float, lat_deg: float) -> tuple[float, float]:
-    """Web-Mercator projection to map millimetres (x: [-W/2, W/2])."""
+    """Web-Mercator projection to map millimetres (x in [-W/2, W/2])."""
     lat = max(-LAT_CLIP, min(LAT_CLIP, lat_deg))
     x = lon_deg / 360.0 * MAP_WIDTH_MM
     y = (
@@ -51,17 +59,153 @@ def mercator(lon_deg: float, lat_deg: float) -> tuple[float, float]:
     return x, y
 
 
+def project_polygon(rings: list) -> Polygon:
+    """GeoJSON polygon coordinate rings (lon/lat) → shapely Polygon in map mm."""
+    shell, *holes = [[mercator(lon, lat) for lon, lat in ring] for ring in rings]
+    return Polygon(shell, holes)
+
+
+def largest_landmass(geometry: dict) -> tuple[Polygon, float]:
+    """Largest projected polygon of a (Multi)Polygon and the area share dropped."""
+    if geometry["type"] == "Polygon":
+        polys = [project_polygon(geometry["coordinates"])]
+    elif geometry["type"] == "MultiPolygon":
+        polys = [project_polygon(rings) for rings in geometry["coordinates"]]
+    else:
+        raise ValueError(f"Unsupported geometry: {geometry['type']}")
+    polys = [p if p.is_valid else p.buffer(0) for p in polys]
+    polys = [p for p in polys if not p.is_empty]
+    # buffer(0) can return MultiPolygons; flatten
+    flat = []
+    for p in polys:
+        flat.extend(p.geoms if isinstance(p, MultiPolygon) else [p])
+    total = sum(p.area for p in flat)
+    best = max(flat, key=lambda p: p.area)
+    return best, (1 - best.area / total) if total else 0.0
+
+
+def label_spec(poly: Polygon, name: str) -> tuple[tuple[float, float], float, bool]:
+    """Label anchor, size, and whether the name truly fits.
+
+    Anchor = pole of inaccessibility; the inscribed-circle radius bounds the
+    text: height <= r, width (~CHAR_W * size * len) <= 1.8 * r.
+    """
+    anchor = polylabel(poly, tolerance=0.5)
+    r = anchor.distance(poly.exterior)
+    for hole in poly.interiors:
+        r = min(r, anchor.distance(hole))
+    size_w = 1.8 * r / (CHAR_W * max(len(name), 1))
+    size = min(size_w, r, LABEL_MAX)
+    fits = size >= LABEL_MIN
+    return (anchor.x, anchor.y), max(size, LABEL_MIN), fits
+
+
+def fmt_points(coords) -> str:
+    return "[" + ", ".join(f"[{x:.2f}, {y:.2f}]" for x, y in coords) + "]"
+
+
+def scad_module(iso: str, name: str, poly: Polygon, label_pos, label_size) -> str:
+    """Emit one country module. Points concatenate all rings; paths index them."""
+    points, paths, offset = [], [], 0
+    for ring in [poly.exterior, *poly.interiors]:
+        coords = list(ring.coords)[:-1]  # drop closing duplicate
+        points.extend(coords)
+        paths.append(list(range(offset, offset + len(coords))))
+        offset += len(coords)
+    name_scad = name.replace("\\", "\\\\").replace('"', '\\"')
+    paths_scad = "[" + ", ".join(str(p) for p in paths) + "]"
+    return f"""// Generated by scripts/generate_countries.py — DO NOT EDIT
+module country_{iso}(part = "all") {{
+    piece(
+        name = "{name_scad}",
+        points = {fmt_points(points)},
+        paths = {paths_scad},
+        label_pos = [{label_pos[0]:.2f}, {label_pos[1]:.2f}],
+        label_size = {label_size:.2f},
+        part = part
+    );
+}}
+"""
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--country", help="ISO A3 code — generate only this country")
+    parser.add_argument("--country", help="ADM0_A3 code — generate only this country")
+    parser.add_argument("--report", action="store_true", help="stats only, no files")
     args = parser.parse_args()
 
-    RAW.mkdir(parents=True, exist_ok=True)
+    if not RAW.exists():
+        RAW.parent.mkdir(parents=True, exist_ok=True)
+        print(f"Downloading {NE_URL} ...", file=sys.stderr)
+        urllib.request.urlretrieve(NE_URL, RAW)
+
+    features = json.loads(RAW.read_text())["features"]
     OUT.mkdir(parents=True, exist_ok=True)
 
-    raise SystemExit(
-        "Skeleton only — projection helper ready, download/emit not yet implemented."
-    )
+    generated, skipped, tight_labels = [], [], []
+    for feat in sorted(features, key=lambda f: f["properties"]["ADM0_A3"]):
+        props = feat["properties"]
+        iso = props["ADM0_A3"]
+        name = props.get("NAME_EN") or props.get("NAME") or props.get("ADMIN")
+        if args.country and iso != args.country:
+            continue
+
+        poly, dropped_share = largest_landmass(feat["geometry"])
+        poly = poly.simplify(SIMPLIFY_TOL_MM, preserve_topology=True)
+        if poly.area < MIN_AREA_MM2:
+            skipped.append((iso, name, poly.area))
+            continue
+
+        label_pos, label_size, fits = label_spec(poly, name)
+        if not fits:
+            tight_labels.append((iso, name, label_size))
+
+        n_pts = len(poly.exterior.coords) + sum(len(h.coords) for h in poly.interiors)
+        generated.append((iso, name, poly.area, n_pts, dropped_share))
+        if args.report:
+            continue
+        (OUT / f"{iso}.scad").write_text(
+            scad_module(iso, name, poly, label_pos, label_size)
+        )
+
+    if not args.report and not args.country:
+        includes = "\n".join(f"include <{iso}.scad>" for iso, *_ in generated)
+        dispatch = "\n    else ".join(
+            f'if (iso == "{iso}") country_{iso}(part);' for iso, *_ in generated
+        )
+        calls = "\n    ".join(f"country_{iso}(part);" for iso, *_ in generated)
+        (OUT / "index.scad").write_text(f"""\
+// Generated by scripts/generate_countries.py — DO NOT EDIT
+{includes}
+
+module country(iso, part = "all") {{
+    {dispatch}
+    else echo(str("Unknown country code: ", iso));
+}}
+
+module all_countries(part = "all") {{
+    {calls}
+}}
+""")
+
+    total_pts = sum(n for *_, n, _ in generated)
+    print(f"Generated {len(generated)} countries, {total_pts} vertices total.")
+    if skipped:
+        print(f"\nSkipped {len(skipped)} below {MIN_AREA_MM2} mm² "
+              f"(too small at {MAP_WIDTH_MM:.0f} mm map width):")
+        for iso, name, area in sorted(skipped, key=lambda s: -s[2]):
+            print(f"  {iso}  {name:<32} {area:6.1f} mm²")
+    if tight_labels:
+        print(f"\n{len(tight_labels)} labels forced to the {LABEL_MIN} mm floor "
+              f"(may overflow their piece):")
+        for iso, name, size in sorted(tight_labels, key=lambda t: t[2]):
+            print(f"  {iso}  {name}")
+    if args.report:
+        print("\nLargest islands dropped (share of country area):")
+        worst = sorted(generated, key=lambda g: -g[4])[:15]
+        for iso, name, _, _, share in worst:
+            if share > 0.01:
+                print(f"  {iso}  {name:<32} {share:5.1%}")
 
 
 if __name__ == "__main__":

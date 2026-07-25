@@ -38,10 +38,18 @@ module piece_label(name, label_pos, size = 6, rot = 0) {
 
 // Complete piece. part = "all" | "base" | "label"
 // (use "base"/"label" when exporting per-color STLs).
+// The label is clipped to the piece footprint: text overflowing the outline
+// would otherwise print as unsupported filament floating in air.
 module piece(name, points, paths = undef, label_pos = [0, 0],
              label_size = 6, label_rot = 0, part = "all") {
     if (part == "all" || part == "base")
         color("white") piece_base(points, paths);
     if (part == "all" || part == "label")
-        color("black") piece_label(name, label_pos, label_size, label_rot);
+        color("black")
+            intersection() {
+                piece_label(name, label_pos, label_size, label_rot);
+                translate([0, 0, BASE_THICKNESS])
+                    linear_extrude(height = LABEL_HEIGHT)
+                        polygon(points = points, paths = paths);
+            }
 }
