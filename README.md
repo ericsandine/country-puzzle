@@ -34,12 +34,21 @@ country-puzzle/
    base plate (white) + raised text (black), as two bodies so Bambu Studio can
    assign a filament to each.
 3. `scad/puzzle.scad` composes pieces — render one piece, a continent, or the
-   full map; export STL/3MF per piece or per print plate.
-4. Slice in Bambu Studio; color the text bodies black, bases white.
+   full map; `scripts/export_pieces.py` exports per-piece base/label STLs.
+4. `scripts/make_plates.py` shelf-packs the pieces into build-plate-sized
+   layouts and writes one 3MF per plate (`export/plates/plate_NN.3mf`),
+   each holding two merged objects: `bases_white` and `labels_black`.
+   Default plate size 256 mm (Bambu P-series); `--plate` overrides.
+5. In Bambu Studio: File → Import a plate 3MF, answer **Yes** to "load as a
+   single object with multiple parts", assign white filament to the bases
+   part and black to the labels part, slice.
+
+Note: Russia (339 x 183 mm) exceeds a 256 mm bed and is reported as
+OVERSIZE rather than plated — print it on a larger machine or split it.
 
 ## Print design notes
 
-- Piece base thickness: 4 mm; label raised 0.8 mm (4 text layers at 0.2 mm).
+- Piece base thickness: 10 mm; label raised 0.8 mm (4 text layers at 0.2 mm).
 - Alternative single-extruder trick: pause/filament-change at the text layer.
 
 ## Map size tradeoff
@@ -171,7 +180,7 @@ Skipped countries:
 ## Setup: scripts venv
 
 ```sh
-python3 -m venv .venv && .venv/bin/pip install shapely
+python3 -m venv .venv && .venv/bin/pip install shapely trimesh numpy networkx lxml
 .venv/bin/python scripts/generate_countries.py
 ```
 

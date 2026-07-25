@@ -21,7 +21,7 @@ Antarctica excluded by design.
 
 ## Print parameters (scad/piece.scad)
 
-- Base 4 mm white, label raised 0.8 mm black (4 × 0.2 mm layers).
+- Base 10 mm white, label raised 0.8 mm black (4 × 0.2 mm layers).
 - Minimum label text size 4 mm for printability.
 
 ## Country data pipeline
