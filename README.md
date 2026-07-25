@@ -53,7 +53,7 @@ long tail is tiny islands and city-states (135 printable countries at
 `scripts/generate_countries.py`.
 
 <!-- BEGIN GENERATED: skipped-countries -->
-**134 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Pieces are labeled with their 3-letter code (see [KEY.md](KEY.md)); 64 pieces are too small even for that and are blank: ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, COG, CUB, CZE, DNK, ECU, ERI, EST, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MWI, MYS, NIC, NLD, NPL, NZL, OMN, PAN, PHL, PRK, PRT, SAH, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, TJK, TUN, UGA, VNM.
+**134 countries printable, 107 skipped** (below 25 mm² at 800 mm map width), plus excluded by design: ATA. Pieces are labeled with their 3-letter code (see [KEY.md](KEY.md)); 78 pieces are too small even for that and are blank: ARE, AUT, AZE, BEL, BEN, BFA, BGD, BGR, BIH, CHE, CHL, CMR, COG, CUB, CZE, DNK, ECU, ERI, EST, GAB, GBR, GEO, GHA, GIN, GRC, GTM, GUY, HND, HRV, HUN, IRL, ITA, JOR, JPN, KGZ, KHM, KOR, LAO, LBR, LKA, LTU, LVA, MDA, MMR, MOZ, MWI, MYS, NIC, NLD, NOR, NPL, NZL, OMN, PAN, PHL, PNG, PRK, PRT, PRY, SAH, SDS, SEN, SLE, SOL, SOM, SRB, SUR, SVK, SYR, THA, TJK, TUN, UGA, URY, UZB, VNM, YEM, ZWE.
 
 Skipped countries:
 

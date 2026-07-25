@@ -23,9 +23,12 @@ import argparse
 import json
 import math
 import pathlib
+import subprocess
 import sys
+import tempfile
 import urllib.request
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 
 # Degenerate (collinear) polygons make oriented_envelope emit NaNs; the
 # NaN angle is guarded in candidate_angles, silence the noise.
@@ -52,7 +55,10 @@ SIMPLIFY_TOL_MM = 0.15  # polygon simplification tolerance
 LABEL_MIN = 4.0         # matches MIN_LABEL_SIZE in scad/piece.scad
 LABEL_MAX = 7.0         # cap for visual uniformity: labels are ISO codes,
                         # big countries shouldn't shout
-CHAR_W = 0.62           # approx glyph advance / text size, Liberation Sans Bold
+LABEL_FONT = "Liberation Sans:style=Bold"  # keep in sync with scad/piece.scad
+OPENSCAD = "/Applications/OpenSCAD-2021.01.app/Contents/MacOS/OpenSCAD"
+METRICS_CACHE = REPO / "data" / "text_metrics.json"
+MEASURE_SIZE = 10.0     # metrics are measured at this text size and scaled
 
 
 def mercator(lon_deg: float, lat_deg: float) -> tuple[float, float]:
@@ -93,8 +99,43 @@ def largest_landmass(geometry: dict) -> tuple[Polygon, float]:
 
 
 LABEL_MARGIN = 0.4   # keep text this far inside the outline (mm, absorbs
-                     # piece clearance + font-metric approximation)
-LINE_H = 1.15        # text box height / size (ascender + descender)
+                     # the piece clearance inset)
+
+
+def _measure_one(text: str) -> tuple[str, list[float]]:
+    """True rendered bbox of `text`: OpenSCAD extrudes it exactly as
+    piece.scad will, exported as OFF (trivial to parse). Returns
+    [width, height, center_dx, center_dy] at MEASURE_SIZE, relative to the
+    halign/valign=center anchor."""
+    with tempfile.TemporaryDirectory() as tmp:
+        scad = pathlib.Path(tmp) / "t.scad"
+        off = pathlib.Path(tmp) / "t.off"
+        scad.write_text(
+            f'linear_extrude(height=1) text("{text}", size={MEASURE_SIZE}, '
+            f'font="{LABEL_FONT}", halign="center", valign="center");'
+        )
+        subprocess.run([OPENSCAD, "-o", str(off), str(scad)],
+                       capture_output=True, check=True)
+        tokens = off.read_text().split()
+        nv = int(tokens[1])
+        xs = [float(tokens[4 + i * 3]) for i in range(nv)]
+        ys = [float(tokens[5 + i * 3]) for i in range(nv)]
+    return text, [max(xs) - min(xs), max(ys) - min(ys),
+                  (max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2]
+
+
+def measure_texts(texts: list[str]) -> dict[str, list[float]]:
+    """Measured text metrics for all `texts`, cached in data/text_metrics.json."""
+    cache = json.loads(METRICS_CACHE.read_text()) if METRICS_CACHE.exists() else {}
+    missing = sorted(set(texts) - set(cache))
+    if missing:
+        print(f"Measuring {len(missing)} label texts with OpenSCAD ...",
+              file=sys.stderr)
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            cache.update(pool.map(_measure_one, missing))
+        METRICS_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        METRICS_CACHE.write_text(json.dumps(cache, indent=0, sort_keys=True))
+    return cache
 
 
 def candidate_angles(poly: Polygon) -> list[float]:
@@ -112,13 +153,13 @@ def candidate_angles(poly: Polygon) -> list[float]:
 
 
 def label_spec(
-    poly: Polygon, names: list[str]
+    poly: Polygon, names: list[str], metrics: dict[str, list[float]]
 ) -> tuple[tuple[float, float], str, float, float]:
     """Label anchor, text, size, rotation. Emitted text genuinely fits.
 
     Anchor = pole of inaccessibility. For each candidate name (longest
-    first) and angle, binary-search the largest text size whose bounding box
-    (CHAR_W * size * len wide, LINE_H * size tall, rotated about the anchor)
+    first) and angle, binary-search the largest text size whose MEASURED
+    bounding box (true OpenSCAD render metrics, rotated about the anchor)
     is contained in the outline. First name that fits at LABEL_MIN wins;
     piece.scad renders the label unclipped, so overflow here would print as
     unsupported filament in air.
@@ -129,9 +170,9 @@ def label_spec(
         return (anchor.x, anchor.y), "", 0.0, 0.0
 
     def fits(text: str, angle: float, size: float) -> bool:
-        w, h = CHAR_W * size * len(text), LINE_H * size
-        rect = box(anchor.x - w / 2, anchor.y - h / 2,
-                   anchor.x + w / 2, anchor.y + h / 2)
+        w, h, dx, dy = (v * size / MEASURE_SIZE for v in metrics[text])
+        cx, cy = anchor.x + dx, anchor.y + dy
+        rect = box(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
         return inner.contains(
             affinity.rotate(rect, angle, origin=(anchor.x, anchor.y))
         )
@@ -248,6 +289,10 @@ def main() -> None:
 
     features = json.loads(RAW.read_text())["features"]
     OUT.mkdir(parents=True, exist_ok=True)
+    metrics = measure_texts([
+        f["properties"]["ADM0_A3"] for f in features
+        if f["properties"]["ADM0_A3"] not in EXCLUDED
+    ])
 
     generated, skipped, tight_labels = [], [], []
     for feat in sorted(features, key=lambda f: f["properties"]["ADM0_A3"]):
@@ -267,7 +312,9 @@ def main() -> None:
 
         # Uniform labels: every piece carries its ISO code (KEY.md maps
         # codes to names), blank only when even 3 letters can't fit.
-        label_pos, label_text, label_size, label_rot = label_spec(poly, [iso])
+        label_pos, label_text, label_size, label_rot = label_spec(
+            poly, [iso], metrics
+        )
         if not label_text:
             tight_labels.append((iso, name, label_text))
 

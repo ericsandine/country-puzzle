@@ -29,7 +29,7 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | — | Chile |
 | CHN | People's Republic of China |
 | CIV | Ivory Coast |
-| CMR | Cameroon |
+| — | Cameroon |
 | COD | Democratic Republic of the Congo |
 | — | Republic of the Congo |
 | COL | Colombia |
@@ -46,7 +46,7 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | ETH | Ethiopia |
 | FIN | Finland |
 | FRA | France |
-| GAB | Gabon |
+| — | Gabon |
 | — | United Kingdom |
 | — | Georgia |
 | — | Ghana |
@@ -69,7 +69,7 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | — | Japan |
 | KAZ | Kazakhstan |
 | KEN | Kenya |
-| KGZ | Kyrgyzstan |
+| — | Kyrgyzstan |
 | — | Cambodia |
 | — | South Korea |
 | — | Laos |
@@ -83,9 +83,9 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | MDG | Madagascar |
 | MEX | Mexico |
 | MLI | Mali |
-| MMR | Myanmar |
+| — | Myanmar |
 | MNG | Mongolia |
-| MOZ | Mozambique |
+| — | Mozambique |
 | MRT | Mauritania |
 | — | Malawi |
 | — | Malaysia |
@@ -94,7 +94,7 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | NGA | Nigeria |
 | — | Nicaragua |
 | — | Netherlands |
-| NOR | Norway |
+| — | Norway |
 | — | Nepal |
 | — | New Zealand |
 | — | Oman |
@@ -102,17 +102,17 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | — | Panama |
 | PER | Peru |
 | — | Philippines |
-| PNG | Papua New Guinea |
+| — | Papua New Guinea |
 | POL | Poland |
 | — | North Korea |
 | — | Portugal |
-| PRY | Paraguay |
+| — | Paraguay |
 | ROU | Romania |
 | RUS | Russia |
 | — | Western Sahara |
 | SAU | Saudi Arabia |
 | SDN | Sudan |
-| SDS | South Sudan |
+| — | South Sudan |
 | — | Senegal |
 | — | Sierra Leone |
 | — | Somaliland |
@@ -123,7 +123,7 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | SWE | Sweden |
 | — | Syria |
 | TCD | Chad |
-| THA | Thailand |
+| — | Thailand |
 | — | Tajikistan |
 | TKM | Turkmenistan |
 | — | Tunisia |
@@ -131,12 +131,12 @@ Each puzzle piece is embossed with its 3-letter country code (Natural Earth ADM0
 | TZA | Tanzania |
 | — | Uganda |
 | UKR | Ukraine |
-| URY | Uruguay |
+| — | Uruguay |
 | USA | United States of America |
-| UZB | Uzbekistan |
+| — | Uzbekistan |
 | VEN | Venezuela |
 | — | Vietnam |
-| YEM | Yemen |
+| — | Yemen |
 | ZAF | South Africa |
 | ZMB | Zambia |
-| ZWE | Zimbabwe |
+| — | Zimbabwe |
